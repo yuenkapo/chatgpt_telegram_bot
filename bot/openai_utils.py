@@ -26,7 +26,7 @@ OPENAI_COMPLETION_OPTIONS = {
 
 class ChatGPT:
     def __init__(self, model="gpt-3.5-turbo"):
-        assert model in {"text-davinci-003", "gpt-3.5-turbo-16k", "gpt-3.5-turbo", "gpt-4", "gpt-4o", "gpt-4-1106-preview", "gpt-4-vision-preview"}, f"Unknown model: {model}"
+        assert model in {"qwen-max", "text-davinci-003", "gpt-3.5-turbo-16k", "gpt-3.5-turbo", "gpt-4", "gpt-4o", "gpt-4-1106-preview", "gpt-4-vision-preview"}, f"Unknown model: {model}"
         self.model = model
 
     async def send_message(self, message, dialog_messages=[], chat_mode="assistant"):
@@ -37,7 +37,7 @@ class ChatGPT:
         answer = None
         while answer is None:
             try:
-                if self.model in {"gpt-3.5-turbo-16k", "gpt-3.5-turbo", "gpt-4", "gpt-4o", "gpt-4-1106-preview", "gpt-4-vision-preview"}:
+                if self.model in {"qwen-max", "gpt-3.5-turbo-16k", "gpt-3.5-turbo", "gpt-4", "gpt-4o", "gpt-4-1106-preview", "gpt-4-vision-preview"}:
                     messages = self._generate_prompt_messages(message, dialog_messages, chat_mode)
 
                     r = await openai.ChatCompletion.acreate(
@@ -78,7 +78,7 @@ class ChatGPT:
         answer = None
         while answer is None:
             try:
-                if self.model in {"gpt-3.5-turbo-16k", "gpt-3.5-turbo", "gpt-4","gpt-4o", "gpt-4-1106-preview"}:
+                if self.model in {"qwen-max", "gpt-3.5-turbo-16k", "gpt-3.5-turbo", "gpt-4","gpt-4o", "gpt-4-1106-preview"}:
                     messages = self._generate_prompt_messages(message, dialog_messages, chat_mode)
 
                     r_gen = await openai.ChatCompletion.acreate(
@@ -290,62 +290,65 @@ class ChatGPT:
         return answer
 
     def _count_tokens_from_messages(self, messages, answer, model="gpt-3.5-turbo"):
-        encoding = tiktoken.encoding_for_model(model)
+        # encoding = tiktoken.encoding_for_model(model)
 
-        if model == "gpt-3.5-turbo-16k":
-            tokens_per_message = 4  # every message follows <im_start>{role/name}\n{content}<im_end>\n
-            tokens_per_name = -1  # if there's a name, the role is omitted
-        elif model == "gpt-3.5-turbo":
-            tokens_per_message = 4
-            tokens_per_name = -1
-        elif model == "gpt-4":
-            tokens_per_message = 3
-            tokens_per_name = 1
-        elif model == "gpt-4-1106-preview":
-            tokens_per_message = 3
-            tokens_per_name = 1
-        elif model == "gpt-4-vision-preview":
-            tokens_per_message = 3
-            tokens_per_name = 1
-        elif model == "gpt-4o":
-            tokens_per_message = 3
-            tokens_per_name = 1
-        else:
-            raise ValueError(f"Unknown model: {model}")
+        # if model == "gpt-3.5-turbo-16k":
+        #     tokens_per_message = 4  # every message follows <im_start>{role/name}\n{content}<im_end>\n
+        #     tokens_per_name = -1  # if there's a name, the role is omitted
+        # elif model == "gpt-3.5-turbo":
+        #     tokens_per_message = 4
+        #     tokens_per_name = -1
+        # elif model == "gpt-4":
+        #     tokens_per_message = 3
+        #     tokens_per_name = 1
+        # elif model == "gpt-4-1106-preview":
+        #     tokens_per_message = 3
+        #     tokens_per_name = 1
+        # elif model == "gpt-4-vision-preview":
+        #     tokens_per_message = 3
+        #     tokens_per_name = 1
+        # elif model == "gpt-4o":
+        #     tokens_per_message = 3
+        #     tokens_per_name = 1
+        # elif model == "qwen-max":
+        #     tokens_per_message = 3
+        #     tokens_per_name = 1           
+        # else:
+        #     raise ValueError(f"Unknown model: {model}")
 
-        # input
-        n_input_tokens = 0
-        for message in messages:
-            n_input_tokens += tokens_per_message
-            if isinstance(message["content"], list):
-                for sub_message in message["content"]:
-                    if "type" in sub_message:
-                        if sub_message["type"] == "text":
-                            n_input_tokens += len(encoding.encode(sub_message["text"]))
-                        elif sub_message["type"] == "image_url":
-                            pass
-            else:
-                if "type" in message:
-                    if message["type"] == "text":
-                        n_input_tokens += len(encoding.encode(message["text"]))
-                    elif message["type"] == "image_url":
-                        pass
+        # # input
+        # n_input_tokens = 0
+        # for message in messages:
+        #     n_input_tokens += tokens_per_message
+        #     if isinstance(message["content"], list):
+        #         for sub_message in message["content"]:
+        #             if "type" in sub_message:
+        #                 if sub_message["type"] == "text":
+        #                     n_input_tokens += len(encoding.encode(sub_message["text"]))
+        #                 elif sub_message["type"] == "image_url":
+        #                     pass
+        #     else:
+        #         if "type" in message:
+        #             if message["type"] == "text":
+        #                 n_input_tokens += len(encoding.encode(message["text"]))
+        #             elif message["type"] == "image_url":
+        #                 pass
 
 
-        n_input_tokens += 2
+        # n_input_tokens += 2
 
-        # output
-        n_output_tokens = 1 + len(encoding.encode(answer))
+        # # output
+        # n_output_tokens = 1 + len(encoding.encode(answer))
 
-        return n_input_tokens, n_output_tokens
+        return 0, 0
 
     def _count_tokens_from_prompt(self, prompt, answer, model="text-davinci-003"):
-        encoding = tiktoken.encoding_for_model(model)
+        # encoding = tiktoken.encoding_for_model(model)
 
-        n_input_tokens = len(encoding.encode(prompt)) + 1
-        n_output_tokens = len(encoding.encode(answer))
+        # n_input_tokens = len(encoding.encode(prompt)) + 1
+        # n_output_tokens = len(encoding.encode(answer))
 
-        return n_input_tokens, n_output_tokens
+        return 0, 0
 
 
 async def transcribe_audio(audio_file) -> str:
